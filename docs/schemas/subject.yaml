@@ -1,0 +1,95 @@
+components:
+  schemas:
+    Subject:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: objectId
+          example: 507f1f77bcf86cd799439011
+        name:
+          type: string
+          example: Islamic Jurisprudence
+        nameAr:
+          type: string
+          example: الفقه الإسلامي
+        description:
+          type: string
+          example: Study of Islamic law and jurisprudence
+        descriptionAr:
+          type: string
+          example: دراسة الفقه والشريعة الإسلامية
+        createdBy:
+          type: object
+          properties:
+            _id:
+              type: string
+              format: objectId
+            name:
+              type: string
+            email:
+              type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    SubjectInput:
+      type: object
+      required:
+        - name
+        - nameAr
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 200
+          example: Islamic Jurisprudence
+        nameAr:
+          type: string
+          minLength: 2
+          maxLength: 200
+          example: الفقه الإسلامي
+        description:
+          type: string
+          maxLength: 1000
+          example: Study of Islamic law and jurisprudence
+        descriptionAr:
+          type: string
+          maxLength: 1000
+          example: دراسة الفقه والشريعة الإسلامية
+
+    SubjectListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            subjects:
+              type: array
+              items:
+                $ref: '#/components/schemas/Subject'
+            count:
+              type: integer
+              example: 10
+
+    SubjectResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+        messageAr:
+          type: string
+        data:
+          type: object
+          properties:
+            subject:
+              $ref: '#/components/schemas/Subject'

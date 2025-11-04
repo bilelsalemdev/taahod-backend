@@ -1,0 +1,149 @@
+components:
+  schemas:
+    Progress:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: objectId
+          example: 507f1f77bcf86cd799439011
+        userId:
+          type: string
+          format: objectId
+        bookId:
+          type: object
+          properties:
+            _id:
+              type: string
+              format: objectId
+            title:
+              type: string
+            titleAr:
+              type: string
+            author:
+              type: string
+            authorAr:
+              type: string
+            subjectId:
+              type: object
+              properties:
+                _id:
+                  type: string
+                name:
+                  type: string
+                nameAr:
+                  type: string
+        currentPage:
+          type: integer
+          minimum: 0
+          example: 150
+        totalPages:
+          type: integer
+          minimum: 1
+          example: 500
+        percentComplete:
+          type: number
+          minimum: 0
+          maximum: 100
+          example: 30
+        lastReadAt:
+          type: string
+          format: date-time
+        notes:
+          type: string
+          maxLength: 5000
+          example: Finished chapter 5
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ProgressInput:
+      type: object
+      required:
+        - bookId
+        - currentPage
+      properties:
+        bookId:
+          type: string
+          format: objectId
+          example: 507f1f77bcf86cd799439011
+        currentPage:
+          type: integer
+          minimum: 0
+          example: 150
+        totalPages:
+          type: integer
+          minimum: 1
+          example: 500
+        notes:
+          type: string
+          maxLength: 5000
+          example: Finished chapter 5
+
+    ProgressListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            progress:
+              type: array
+              items:
+                $ref: '#/components/schemas/Progress'
+            count:
+              type: integer
+              example: 5
+
+    ProgressResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+        messageAr:
+          type: string
+        data:
+          type: object
+          properties:
+            progress:
+              $ref: '#/components/schemas/Progress'
+
+    ProgressStats:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            stats:
+              type: object
+              properties:
+                totalBooks:
+                  type: integer
+                  example: 10
+                completedBooks:
+                  type: integer
+                  example: 3
+                inProgressBooks:
+                  type: integer
+                  example: 5
+                notStartedBooks:
+                  type: integer
+                  example: 2
+                averageProgress:
+                  type: integer
+                  example: 45
+            recentlyRead:
+              type: array
+              items:
+                $ref: '#/components/schemas/Progress'

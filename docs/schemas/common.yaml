@@ -1,0 +1,67 @@
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: INTERNAL_ERROR
+            message:
+              type: string
+              example: An error occurred
+            messageAr:
+              type: string
+              example: حدث خطأ
+            details:
+              type: array
+              items:
+                type: object
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+        messageAr:
+          type: string
+        data:
+          type: object
+
+    ValidationError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Validation failed
+            messageAr:
+              type: string
+              example: فشل التحقق من البيانات
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                  param:
+                    type: string
+                  location:
+                    type: string

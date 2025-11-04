@@ -1,0 +1,199 @@
+components:
+  schemas:
+    Book:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: objectId
+          example: 507f1f77bcf86cd799439011
+        title:
+          type: string
+          example: Sahih Al-Bukhari
+        titleAr:
+          type: string
+          example: صحيح البخاري
+        author:
+          type: string
+          example: Imam Al-Bukhari
+        authorAr:
+          type: string
+          example: الإمام البخاري
+        description:
+          type: string
+          example: Collection of authentic hadith
+        descriptionAr:
+          type: string
+          example: مجموعة من الأحاديث الصحيحة
+        subjectId:
+          type: object
+          properties:
+            _id:
+              type: string
+              format: objectId
+            name:
+              type: string
+            nameAr:
+              type: string
+        fileUrl:
+          type: string
+          example: /uploads/books/1234567890-sahih-bukhari.pdf
+        fileType:
+          type: string
+          enum: [application/pdf, application/epub+zip, text/plain]
+          example: application/pdf
+        fileSize:
+          type: integer
+          example: 5242880
+        totalPages:
+          type: integer
+          example: 500
+        uploadedBy:
+          type: object
+          properties:
+            _id:
+              type: string
+              format: objectId
+            name:
+              type: string
+            email:
+              type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    BookInput:
+      type: object
+      required:
+        - title
+        - titleAr
+        - author
+        - authorAr
+        - subjectId
+        - file
+      properties:
+        title:
+          type: string
+          minLength: 2
+          maxLength: 300
+          example: Sahih Al-Bukhari
+        titleAr:
+          type: string
+          minLength: 2
+          maxLength: 300
+          example: صحيح البخاري
+        author:
+          type: string
+          minLength: 2
+          maxLength: 200
+          example: Imam Al-Bukhari
+        authorAr:
+          type: string
+          minLength: 2
+          maxLength: 200
+          example: الإمام البخاري
+        description:
+          type: string
+          maxLength: 2000
+          example: Collection of authentic hadith
+        descriptionAr:
+          type: string
+          maxLength: 2000
+          example: مجموعة من الأحاديث الصحيحة
+        subjectId:
+          type: string
+          format: objectId
+          example: 507f1f77bcf86cd799439011
+        totalPages:
+          type: integer
+          minimum: 0
+          example: 500
+        file:
+          type: string
+          format: binary
+          description: PDF, EPUB, or TXT file (max 50MB)
+
+    BookUpdateInput:
+      type: object
+      required:
+        - title
+        - titleAr
+        - author
+        - authorAr
+      properties:
+        title:
+          type: string
+          minLength: 2
+          maxLength: 300
+        titleAr:
+          type: string
+          minLength: 2
+          maxLength: 300
+        author:
+          type: string
+          minLength: 2
+          maxLength: 200
+        authorAr:
+          type: string
+          minLength: 2
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        descriptionAr:
+          type: string
+          maxLength: 2000
+        subjectId:
+          type: string
+          format: objectId
+        totalPages:
+          type: integer
+          minimum: 0
+
+    BookListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            books:
+              type: array
+              items:
+                $ref: '#/components/schemas/Book'
+            pagination:
+              type: object
+              properties:
+                page:
+                  type: integer
+                  example: 1
+                limit:
+                  type: integer
+                  example: 10
+                total:
+                  type: integer
+                  example: 50
+                pages:
+                  type: integer
+                  example: 5
+
+    BookResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+        messageAr:
+          type: string
+        data:
+          type: object
+          properties:
+            book:
+              $ref: '#/components/schemas/Book'
