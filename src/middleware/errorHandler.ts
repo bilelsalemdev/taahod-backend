@@ -173,7 +173,7 @@ export const errorHandler = (
 /**
  * Handle 404 errors
  */
-export const notFound = (req: Request, res: Response, next: NextFunction) => {
+export const notFound = (req: Request, _res: Response, next: NextFunction) => {
   const error = new AppError(
     `Route ${req.originalUrl} not found`,
     `المسار ${req.originalUrl} غير موجود`,
