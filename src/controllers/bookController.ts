@@ -453,8 +453,15 @@ export const getBookFile = async (
       return;
     }
 
+    // Get file stats for proper streaming
+    const stat = fs.statSync(filePath);
+    const fileSize = stat.size;
+
     // Set appropriate headers
     res.setHeader('Content-Type', book.fileType);
+    res.setHeader('Accept-Ranges', 'bytes');
+    res.setHeader('Content-Length', fileSize);
+    res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
 
     // Use safe ASCII filename with UTF-8 encoded alternative
     const fileExtension = book.fileType.split('/')[1] || 'pdf';
@@ -467,20 +474,59 @@ export const getBookFile = async (
       'Content-Disposition',
       `inline; filename="${safeFilename}"; filename*=UTF-8''${arabicFilename}`
     );
-    res.setHeader('Content-Length', book.fileSize);
 
-    // Stream the file
-    const fileStream = fs.createReadStream(filePath);
-    fileStream.pipe(res);
+    // Handle range requests for better streaming
+    const range = req.headers.range;
+    if (range) {
+      const parts = range.replace(/bytes=/, '').split('-');
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      const chunksize = end - start + 1;
+
+      res.status(206);
+      res.setHeader('Content-Range', `bytes ${start}-${end}/${fileSize}`);
+      res.setHeader('Content-Length', chunksize);
+
+      const fileStream = fs.createReadStream(filePath, { start, end, highWaterMark: 64 * 1024 }); // 64KB chunks
+      fileStream.pipe(res);
+
+      fileStream.on('error', (error) => {
+        console.error('File stream error:', error);
+        if (!res.headersSent) {
+          res.status(500).end();
+        }
+      });
+    } else {
+      // Stream the entire file with optimized chunk size
+      const fileStream = fs.createReadStream(filePath, { highWaterMark: 64 * 1024 }); // 64KB chunks
+
+      fileStream.on('error', (error) => {
+        console.error('File stream error:', error);
+        if (!res.headersSent) {
+          res.status(500).json({
+            success: false,
+            error: {
+              code: 'STREAM_ERROR',
+              message: 'An error occurred while streaming the file',
+              messageAr: 'حدث خطأ أثناء بث الملف',
+            },
+          });
+        }
+      });
+
+      fileStream.pipe(res);
+    }
   } catch (error: any) {
     console.error('Get book file error:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: 'An error occurred while retrieving the book file',
-        messageAr: 'حدث خطأ أثناء استرجاع ملف الكتاب',
-      },
-    });
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'An error occurred while retrieving the book file',
+          messageAr: 'حدث خطأ أثناء استرجاع ملف الكتاب',
+        },
+      });
+    }
   }
 };

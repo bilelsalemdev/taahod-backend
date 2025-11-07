@@ -105,11 +105,16 @@ const startServer = async () => {
     await database.connect();
 
     // Start server
-    app.listen(config.port, () => {
+    const server = app.listen(config.port, () => {
       console.log(`🚀 Server is running on port ${config.port}`);
       console.log(`📚 Taahod API`);
       console.log(`🌍 Environment: ${config.nodeEnv}`);
     });
+
+    // Increase timeout for large file downloads (5 minutes)
+    server.timeout = 300000;
+    server.keepAliveTimeout = 310000;
+    server.headersTimeout = 320000;
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);
