@@ -20,6 +20,10 @@ import { apiLimiter, authLimiter, sanitizeRequest } from './middleware/security'
 
 const app: Application = express();
 
+// Trust proxy - required when behind reverse proxy (nginx, load balancer, etc.)
+// This allows express-rate-limit to correctly identify users by their real IP
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(helmet());
 
