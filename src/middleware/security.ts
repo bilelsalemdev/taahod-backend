@@ -6,7 +6,7 @@ import { Request, Response } from 'express';
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50, // 50 requests per windowMs (increased from 5 for development)
+  max: 1000, // 1000 requests per 15 minutes (very high limit for production)
   message: {
     success: false,
     error: {
@@ -18,6 +18,7 @@ export const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true, // Don't count successful requests
+  skipFailedRequests: false, // Still count failed requests for security
 });
 
 /**
@@ -25,7 +26,7 @@ export const authLimiter = rateLimit({
  */
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 500, // 500 requests per windowMs (increased for better UX)
+  max: 10000, // 10000 requests per 15 minutes (very high limit for production)
   message: {
     success: false,
     error: {
@@ -44,7 +45,7 @@ export const apiLimiter = rateLimit({
  */
 export const uploadLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // 10 uploads per hour
+  max: 100, // 100 uploads per hour (increased for production)
   message: {
     success: false,
     error: {
