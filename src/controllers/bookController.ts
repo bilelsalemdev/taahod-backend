@@ -455,9 +455,17 @@ export const getBookFile = async (
 
     // Set appropriate headers
     res.setHeader('Content-Type', book.fileType);
+
+    // Use safe ASCII filename with UTF-8 encoded alternative
+    const fileExtension = book.fileType.split('/')[1] || 'pdf';
+    const safeFilename = `book-${book._id}.${fileExtension}`;
+    const arabicFilename = encodeURIComponent(
+      (book.titleAr || book.title).substring(0, 100) + `.${fileExtension}`
+    );
+
     res.setHeader(
       'Content-Disposition',
-      `inline; filename="${book.titleAr}.${book.fileType.split('/')[1]}"`
+      `inline; filename="${safeFilename}"; filename*=UTF-8''${arabicFilename}`
     );
     res.setHeader('Content-Length', book.fileSize);
 
