@@ -23,7 +23,7 @@ interface Config {
 const config: Config = {
   port: parseInt(process.env.PORT || '5000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
-  mongoUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/al-hikmah-academy',
+  mongoUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/taahod',
   jwt: {
     secret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production',
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',

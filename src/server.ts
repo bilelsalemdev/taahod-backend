@@ -29,7 +29,7 @@ app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
     if (allowedOrigins.indexOf(origin) !== -1 || config.nodeEnv === 'development') {
       callback(null, true);
     } else {
@@ -50,10 +50,10 @@ app.use('/api/', apiLimiter);
 // Health check endpoint
 app.get('/health', (_req, res) => {
   const dbStatus = database.isConnectionActive();
-  
+
   res.status(dbStatus ? 200 : 503).json({
     success: true,
-    message: 'Al-Hikmah Academy API is running',
+    message: 'Taahod API is running',
     timestamp: new Date().toISOString(),
     database: dbStatus ? 'connected' : 'disconnected',
     environment: config.nodeEnv
@@ -68,7 +68,7 @@ app.get('/api/test', (_req, res) => {
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Al-Hikmah Academy API Documentation',
+  customSiteTitle: 'Taahod API Documentation',
 }));
 
 // Swagger JSON endpoint
@@ -107,7 +107,7 @@ const startServer = async () => {
     // Start server
     app.listen(config.port, () => {
       console.log(`🚀 Server is running on port ${config.port}`);
-      console.log(`📚 Al-Hikmah Academy API`);
+      console.log(`📚 Taahod API`);
       console.log(`🌍 Environment: ${config.nodeEnv}`);
     });
   } catch (error) {
@@ -119,7 +119,7 @@ const startServer = async () => {
 // Graceful shutdown
 const gracefulShutdown = async (signal: string) => {
   console.log(`\n${signal} signal received: closing HTTP server`);
-  
+
   try {
     await database.disconnect();
     console.log('✅ Graceful shutdown completed');

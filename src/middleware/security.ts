@@ -6,7 +6,7 @@ import { Request, Response } from 'express';
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per windowMs
+  max: 50, // 50 requests per windowMs (increased from 5 for development)
   message: {
     success: false,
     error: {
@@ -17,6 +17,7 @@ export const authLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skipSuccessfulRequests: true, // Don't count successful requests
 });
 
 /**
@@ -24,7 +25,7 @@ export const authLimiter = rateLimit({
  */
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests per windowMs
+  max: 500, // 500 requests per windowMs (increased for better UX)
   message: {
     success: false,
     error: {
@@ -35,6 +36,7 @@ export const apiLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skipSuccessfulRequests: true, // Don't count successful requests
 });
 
 /**

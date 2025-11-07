@@ -4,12 +4,12 @@ import path from 'path';
 const swaggerDefinition = {
   openapi: '3.0.0',
   info: {
-    title: 'Al-Hikmah Academy API',
+    title: 'Taahod API',
     version: '1.0.0',
     description: 'Islamic Learning Platform API Documentation',
     contact: {
-      name: 'Al-Hikmah Academy',
-      email: 'support@alhikmah.academy',
+      name: 'Taahod',
+      email: 'support@taahod.com',
     },
     license: {
       name: 'MIT',

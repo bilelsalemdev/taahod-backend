@@ -19,7 +19,7 @@ class Database {
       return;
     }
 
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/al-hikmah-academy';
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/taahod';
 
     try {
       await mongoose.connect(mongoUri, {
