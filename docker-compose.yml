@@ -31,8 +31,8 @@ services:
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
       - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173}
     volumes:
-      - .:/app
-      - /app/node_modules
+      # - .:/app  # Commented out - use built code in container
+      # - /app/node_modules
       - backend_uploads:/app/uploads
     depends_on:
       - mongodb
