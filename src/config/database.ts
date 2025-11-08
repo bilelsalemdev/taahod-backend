@@ -24,10 +24,12 @@ class Database {
 
     try {
       await mongoose.connect(mongoUri, {
-        maxPoolSize: 10,
+        maxPoolSize: 20,
         minPoolSize: 5,
         socketTimeoutMS: 45000,
         serverSelectionTimeoutMS: 5000,
+        maxIdleTimeMS: 30000,
+        compressors: ['zlib'],
       });
 
       this.isConnected = true;

@@ -24,7 +24,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - PORT=5000
       - MONGODB_URI=mongodb://mongodb:27017/taahod
       - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
@@ -34,10 +34,25 @@ services:
       # - .:/app  # Commented out - use built code in container
       # - /app/node_modules
       - backend_uploads:/app/uploads
+      - backend_logs:/app/logs
     depends_on:
       - mongodb
     networks:
       - taahod-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
   mongodb_data:
@@ -45,6 +60,8 @@ volumes:
   mongodb_config:
     driver: local
   backend_uploads:
+    driver: local
+  backend_logs:
     driver: local
 
 networks:
