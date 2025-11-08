@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 import config from './config';
 import database from './config/database';
+import logger from './utils/logger';
+import morganMiddleware from './middleware/logger';
 import authRoutes from './routes/authRoutes';
 import subjectRoutes from './routes/subjectRoutes';
 import bookRoutes from './routes/bookRoutes';
@@ -46,6 +48,9 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Request logging middleware (Morgan + Winston)
+app.use(morganMiddleware);
 
 // Security middleware
 app.use(sanitizeRequest);
@@ -110,9 +115,9 @@ const startServer = async () => {
 
     // Start server
     const server = app.listen(config.port, () => {
-      console.log(`🚀 Server is running on port ${config.port}`);
-      console.log(`📚 Taahod API`);
-      console.log(`🌍 Environment: ${config.nodeEnv}`);
+      logger.info(`🚀 Server is running on port ${config.port}`);
+      logger.info(`📚 Taahod API`);
+      logger.info(`🌍 Environment: ${config.nodeEnv}`);
     });
 
     // Increase timeout for large file downloads (5 minutes)
@@ -120,21 +125,21 @@ const startServer = async () => {
     server.keepAliveTimeout = 310000;
     server.headersTimeout = 320000;
   } catch (error) {
-    console.error('❌ Failed to start server:', error);
+    logger.error('❌ Failed to start server:', error);
     process.exit(1);
   }
 };
 
 // Graceful shutdown
 const gracefulShutdown = async (signal: string) => {
-  console.log(`\n${signal} signal received: closing HTTP server`);
+  logger.info(`\n${signal} signal received: closing HTTP server`);
 
   try {
     await database.disconnect();
-    console.log('✅ Graceful shutdown completed');
+    logger.info('✅ Graceful shutdown completed');
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error during shutdown:', error);
+    logger.error('❌ Error during shutdown:', error);
     process.exit(1);
   }
 };
@@ -144,12 +149,12 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error);
+  logger.error('❌ Uncaught Exception:', error);
   gracefulShutdown('UNCAUGHT_EXCEPTION');
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  logger.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
   gracefulShutdown('UNHANDLED_REJECTION');
 });
 

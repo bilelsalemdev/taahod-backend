@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import logger from '../utils/logger';
 
 class Database {
   private static instance: Database;
@@ -15,7 +16,7 @@ class Database {
 
   public async connect(): Promise<void> {
     if (this.isConnected) {
-      console.log('📦 Already connected to MongoDB');
+      logger.info('📦 Already connected to MongoDB');
       return;
     }
 
@@ -30,27 +31,27 @@ class Database {
       });
 
       this.isConnected = true;
-      console.log('✅ MongoDB connected successfully');
-      console.log(`📍 Database: ${mongoose.connection.name}`);
+      logger.info('✅ MongoDB connected successfully');
+      logger.info(`📍 Database: ${mongoose.connection.name}`);
 
       // Handle connection events
       mongoose.connection.on('error', (error) => {
-        console.error('❌ MongoDB connection error:', error);
+        logger.error('❌ MongoDB connection error:', error);
         this.isConnected = false;
       });
 
       mongoose.connection.on('disconnected', () => {
-        console.warn('⚠️  MongoDB disconnected');
+        logger.warn('⚠️  MongoDB disconnected');
         this.isConnected = false;
       });
 
       mongoose.connection.on('reconnected', () => {
-        console.log('🔄 MongoDB reconnected');
+        logger.info('🔄 MongoDB reconnected');
         this.isConnected = true;
       });
 
     } catch (error) {
-      console.error('❌ Failed to connect to MongoDB:', error);
+      logger.error('❌ Failed to connect to MongoDB:', error);
       this.isConnected = false;
       throw error;
     }
@@ -64,9 +65,9 @@ class Database {
     try {
       await mongoose.connection.close();
       this.isConnected = false;
-      console.log('👋 MongoDB disconnected gracefully');
+      logger.info('👋 MongoDB disconnected gracefully');
     } catch (error) {
-      console.error('❌ Error disconnecting from MongoDB:', error);
+      logger.error('❌ Error disconnecting from MongoDB:', error);
       throw error;
     }
   }

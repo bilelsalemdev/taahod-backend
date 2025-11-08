@@ -23,8 +23,8 @@ COPY . .
 # Build TypeScript
 RUN npm run build
 
-# Create uploads directory
-RUN mkdir -p uploads
+# Create uploads and logs directories
+RUN mkdir -p uploads logs
 
 # Expose port
 EXPOSE 5000
