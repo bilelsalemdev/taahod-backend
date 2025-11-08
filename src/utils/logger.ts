@@ -1,4 +1,6 @@
 import winston from 'winston';
+import fs from 'fs';
+import path from 'path';
 import config from '../config';
 
 // Define log levels
@@ -31,24 +33,42 @@ const format = winston.format.combine(
   )
 );
 
+// Ensure logs directory exists
+const logsDir = path.join(__dirname, '../../logs');
+if (!fs.existsSync(logsDir)) {
+  try {
+    fs.mkdirSync(logsDir, { recursive: true });
+  } catch (error) {
+    console.error('Failed to create logs directory:', error);
+  }
+}
+
 // Define which transports the logger must use
-const transports = [
-  // Console transport
+const transports: winston.transport[] = [
+  // Console transport (always enabled)
   new winston.transports.Console(),
-  
-  // File transport for errors
-  new winston.transports.File({
-    filename: 'logs/error.log',
-    level: 'error',
-  }),
-  
-  // File transport for all logs
-  new winston.transports.File({ filename: 'logs/all.log' }),
 ];
+
+// Add file transports only if logs directory is writable
+try {
+  if (fs.existsSync(logsDir)) {
+    transports.push(
+      new winston.transports.File({
+        filename: path.join(logsDir, 'error.log'),
+        level: 'error',
+      }),
+      new winston.transports.File({
+        filename: path.join(logsDir, 'all.log'),
+      })
+    );
+  }
+} catch (error) {
+  console.error('Failed to add file transports:', error);
+}
 
 // Create the logger
 const logger = winston.createLogger({
-  level: config.nodeEnv === 'development' ? 'debug' : 'warn',
+  level: config.nodeEnv === 'production' ? 'info' : 'debug',
   levels,
   format,
   transports,
