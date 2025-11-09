@@ -4,6 +4,7 @@ import {
   getAllBooks,
   getBookById,
   createBook,
+  createBookFromChunks,
   updateBook,
   deleteBook,
   getBookFile,
@@ -129,6 +130,13 @@ router.put(
   ],
   updateBook
 );
+
+/**
+ * @route   POST /api/books/from-chunks
+ * @desc    Create book from chunked upload
+ * @access  Private (Admin only)
+ */
+router.post('/from-chunks', authenticate, adminOnly, createBookFromChunks);
 
 /**
  * @route   DELETE /api/books/:id

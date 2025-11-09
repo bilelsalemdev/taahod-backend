@@ -16,6 +16,7 @@ import podcastRoutes from './routes/podcastRoutes';
 import adhkarRoutes from './routes/adhkarRoutes';
 import collaborationRoutes from './routes/collaborationRoutes';
 import profileRoutes from './routes/profileRoutes';
+import uploadRoutes from './routes/uploadRoutes';
 import { swaggerSpec } from './config/swagger';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import { apiLimiter, authLimiter, sanitizeRequest } from './middleware/security';
@@ -97,6 +98,7 @@ app.use('/api/podcasts', podcastRoutes);
 app.use('/api/adhkar', adhkarRoutes);
 app.use('/api/collaborations', collaborationRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Serve uploaded files
 app.use('/uploads', express.static('uploads'));

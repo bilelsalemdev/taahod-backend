@@ -5,6 +5,8 @@ import Subject from '../models/Subject';
 import path from 'path';
 import fs from 'fs';
 import { deleteFile } from '../middleware/upload';
+import chunkUploadService from '../services/chunkUploadService';
+import logger from '../utils/logger';
 
 /**
  * Get all books with pagination
@@ -252,13 +254,149 @@ export const createBook = async (
     if (req.file) {
       deleteFile(req.file.path);
     }
-    console.error('Create book error:', error);
+    logger.error('Create book error:', error);
     res.status(500).json({
       success: false,
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while uploading the book',
         messageAr: 'حدث خطأ أثناء رفع الكتاب',
+      },
+    });
+  }
+};
+
+/**
+ * Create book from chunked upload
+ * POST /api/books/from-chunks
+ */
+export const createBookFromChunks = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const {
+      uploadId,
+      title,
+      titleAr,
+      author,
+      authorAr,
+      description,
+      descriptionAr,
+      subjectId,
+      totalPages,
+    } = req.body;
+
+    if (!uploadId) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'UPLOAD_ID_REQUIRED',
+          message: 'Upload ID is required',
+          messageAr: 'معرف الرفع مطلوب',
+        },
+      });
+      return;
+    }
+
+    // Get upload metadata
+    const metadata = chunkUploadService.getMetadata(uploadId);
+    if (!metadata) {
+      res.status(404).json({
+        success: false,
+        error: {
+          code: 'UPLOAD_NOT_FOUND',
+          message: 'Upload not found',
+          messageAr: 'الرفع غير موجود',
+        },
+      });
+      return;
+    }
+
+    // Check if upload is complete
+    if (!chunkUploadService.isUploadComplete(uploadId)) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'UPLOAD_INCOMPLETE',
+          message: 'Upload is not complete',
+          messageAr: 'الرفع غير مكتمل',
+        },
+      });
+      return;
+    }
+
+    // Verify subject exists
+    const subject = await Subject.findById(subjectId);
+    if (!subject) {
+      await chunkUploadService.cleanupUpload(uploadId);
+      res.status(404).json({
+        success: false,
+        error: {
+          code: 'SUBJECT_NOT_FOUND',
+          message: 'Subject not found',
+          messageAr: 'المادة غير موجودة',
+        },
+      });
+      return;
+    }
+
+    // Generate unique filename
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    const sanitizedName = metadata.filename.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const filename = `${uniqueSuffix}-${sanitizedName}`;
+    const booksDir = path.join(__dirname, '../../uploads/books');
+    const destinationPath = path.join(booksDir, filename);
+
+    // Ensure books directory exists
+    if (!fs.existsSync(booksDir)) {
+      fs.mkdirSync(booksDir, { recursive: true });
+    }
+
+    // Merge chunks into final file
+    await chunkUploadService.mergeChunks(uploadId, destinationPath);
+
+    // Get file stats
+    const stats = fs.statSync(destinationPath);
+
+    // Create book
+    const book = await Book.create({
+      title,
+      titleAr,
+      author,
+      authorAr,
+      description: description || '',
+      descriptionAr: descriptionAr || '',
+      subjectId,
+      fileUrl: `/uploads/books/${filename}`,
+      fileType: metadata.mimeType,
+      fileSize: stats.size,
+      totalPages: parseInt(totalPages) || 0,
+      uploadedBy: req.user!.userId,
+    });
+
+    // Populate references
+    await book.populate('subjectId', 'name nameAr');
+    await book.populate('uploadedBy', 'name email');
+
+    logger.info(`Book created from chunked upload: ${book._id}`);
+
+    res.status(201).json({
+      success: true,
+      message: 'Book uploaded successfully',
+      messageAr: 'تم رفع الكتاب بنجاح',
+      data: {
+        book,
+      },
+    });
+  } catch (error: any) {
+    logger.error('Create book from chunks error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'An error occurred while creating the book',
+        messageAr: 'حدث خطأ أثناء إنشاء الكتاب',
       },
     });
   }
