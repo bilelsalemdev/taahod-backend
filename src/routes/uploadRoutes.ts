@@ -13,7 +13,7 @@ const router = Router();
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB per chunk
+    fileSize: 1 * 1024 * 1024, // 1MB per chunk (allows up to 512KB chunks with overhead)
   },
 });
 

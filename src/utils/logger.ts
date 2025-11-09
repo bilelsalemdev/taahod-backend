@@ -24,10 +24,18 @@ const colors = {
 // Tell winston about our colors
 winston.addColors(colors);
 
-// Define format
-const format = winston.format.combine(
-  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
-  winston.format.colorize({ all: true }),
+// Console format (with colors for terminal)
+const consoleFormat = winston.format.combine(
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+  winston.format.colorize(),
+  winston.format.printf(
+    (info) => `${info.timestamp} ${info.level}: ${info.message}`
+  )
+);
+
+// File format (no colors)
+const fileFormat = winston.format.combine(
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.printf(
     (info) => `${info.timestamp} ${info.level}: ${info.message}`
   )
@@ -46,7 +54,9 @@ if (!fs.existsSync(logsDir)) {
 // Define which transports the logger must use
 const transports: winston.transport[] = [
   // Console transport (always enabled)
-  new winston.transports.Console(),
+  new winston.transports.Console({
+    format: consoleFormat,
+  }),
 ];
 
 // Add file transports only if logs directory is writable
@@ -56,9 +66,11 @@ try {
       new winston.transports.File({
         filename: path.join(logsDir, 'error.log'),
         level: 'error',
+        format: fileFormat,
       }),
       new winston.transports.File({
         filename: path.join(logsDir, 'all.log'),
+        format: fileFormat,
       })
     );
   }
@@ -70,7 +82,6 @@ try {
 const logger = winston.createLogger({
   level: config.nodeEnv === 'production' ? 'info' : 'debug',
   levels,
-  format,
   transports,
 });
 

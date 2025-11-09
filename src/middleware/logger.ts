@@ -6,10 +6,10 @@ const stream: StreamOptions = {
   write: (message: string) => logger.http(message.trim()),
 };
 
-// Skip logging for health check endpoint in production
-const skip = () => {
-  const env = process.env.NODE_ENV || 'development';
-  return env !== 'development';
+// Skip logging only for health check endpoint
+const skip = (req: any) => {
+  // Skip health check to reduce noise
+  return req.url === '/health';
 };
 
 // Build the morgan middleware
