@@ -552,7 +552,7 @@ export const deleteBook = async (
 };
 
 /**
- * Stream/download book file
+ * Stream/download book file with range support
  * GET /api/books/:id/file
  */
 export const getBookFile = async (
@@ -598,8 +598,8 @@ export const getBookFile = async (
     // Set appropriate headers
     res.setHeader('Content-Type', book.fileType);
     res.setHeader('Accept-Ranges', 'bytes');
-    res.setHeader('Content-Length', fileSize);
     res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Range, Accept-Ranges, Content-Length');
 
     // Use safe ASCII filename with UTF-8 encoded alternative
     const fileExtension = book.fileType.split('/')[1] || 'pdf';
@@ -613,7 +613,7 @@ export const getBookFile = async (
       `inline; filename="${safeFilename}"; filename*=UTF-8''${arabicFilename}`
     );
 
-    // Handle range requests for better streaming
+    // Handle range requests for better streaming (critical for large PDFs)
     const range = req.headers.range;
     if (range) {
       const parts = range.replace(/bytes=/, '').split('-');
@@ -621,25 +621,42 @@ export const getBookFile = async (
       const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
       const chunksize = end - start + 1;
 
-      res.status(206);
+      // Validate range
+      if (start >= fileSize || end >= fileSize) {
+        res.status(416).setHeader('Content-Range', `bytes */${fileSize}`);
+        res.end();
+        return;
+      }
+
+      res.status(206); // Partial Content
       res.setHeader('Content-Range', `bytes ${start}-${end}/${fileSize}`);
       res.setHeader('Content-Length', chunksize);
 
-      const fileStream = fs.createReadStream(filePath, { start, end, highWaterMark: 64 * 1024 }); // 64KB chunks
+      // Use larger chunks for better performance (256KB)
+      const fileStream = fs.createReadStream(filePath, { 
+        start, 
+        end, 
+        highWaterMark: 256 * 1024 
+      });
+      
       fileStream.pipe(res);
 
       fileStream.on('error', (error) => {
-        console.error('File stream error:', error);
+        logger.error('File stream error:', error);
         if (!res.headersSent) {
           res.status(500).end();
         }
       });
     } else {
       // Stream the entire file with optimized chunk size
-      const fileStream = fs.createReadStream(filePath, { highWaterMark: 64 * 1024 }); // 64KB chunks
+      res.setHeader('Content-Length', fileSize);
+      
+      const fileStream = fs.createReadStream(filePath, { 
+        highWaterMark: 256 * 1024 // 256KB chunks
+      });
 
       fileStream.on('error', (error) => {
-        console.error('File stream error:', error);
+        logger.error('File stream error:', error);
         if (!res.headersSent) {
           res.status(500).json({
             success: false,
@@ -655,7 +672,7 @@ export const getBookFile = async (
       fileStream.pipe(res);
     }
   } catch (error: any) {
-    console.error('Get book file error:', error);
+    logger.error('Get book file error:', error);
     if (!res.headersSent) {
       res.status(500).json({
         success: false,

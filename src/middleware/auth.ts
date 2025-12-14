@@ -12,6 +12,7 @@ declare global {
 
 /**
  * Authentication middleware - verifies JWT token
+ * Supports both Authorization header and query parameter token
  */
 export const authenticate = async (
   req: Request,
@@ -19,10 +20,20 @@ export const authenticate = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // Get token from Authorization header
-    const authHeader = req.headers.authorization;
+    let token: string | undefined;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // Try to get token from Authorization header first
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    }
+
+    // If no header token, try query parameter (useful for PDF streaming)
+    if (!token && req.query.token) {
+      token = req.query.token as string;
+    }
+
+    if (!token) {
       res.status(401).json({
         success: false,
         error: {
@@ -33,8 +44,6 @@ export const authenticate = async (
       });
       return;
     }
-
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
     // Verify token
     const decoded = verifyToken(token);
